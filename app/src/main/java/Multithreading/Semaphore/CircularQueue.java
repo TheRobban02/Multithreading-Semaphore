@@ -5,7 +5,7 @@ import java.util.concurrent.Semaphore;
 public class CircularQueue implements IMessageQueue{
 
     private int size = 5;
-    private int head, tail;
+    private int front, rear;
     private char messages[];
     public Semaphore enqueueSemaphore;
     public Semaphore dequeueSemaphore;
@@ -13,7 +13,7 @@ public class CircularQueue implements IMessageQueue{
     public CircularQueue(int size) {
         this.size = size;
         messages = new char[size];
-        head = tail = 0;
+        front = rear = -1;
     
         // initialize the semaphores with the maximum number of permits equal to the size of the queue
         enqueueSemaphore = new Semaphore(size);
@@ -21,11 +21,11 @@ public class CircularQueue implements IMessageQueue{
     }
 
     public boolean isEmpty() {
-        return messages[head] == 0;
+        return front == -1;
     }
 
     public boolean isFull() {
-        if((tail + 1) % size == head) {
+        if((rear - front == size - 1) || (front - rear == 1)) {
             return true;
         } else {
             return false;
@@ -33,37 +33,38 @@ public class CircularQueue implements IMessageQueue{
     }
 
     public char removeMessage() {
-        try {
-            dequeueSemaphore.acquire();
-        } catch (InterruptedException e) {}
 
-        // remove the element from the queue and update the head index
-        char msg = messages[head];
-        head = (head + 1) % size;
-    
-        // release a permit to the enqueue semaphore
-        enqueueSemaphore.release();
-    
-        return msg;
+        if(rear == front) { // If the last element is deleted.
+            char temp = messages[rear];
+            front = rear = -1;
+            return temp;
+        } else {
+            char msg = messages[front];
+            front = front++ % size;
+            enqueueSemaphore.release();
+            return msg;
+        }
+
     }
-
 
     @Override
     public boolean Send(char msg) {
-        try {
-            if(isFull()) {
-                dequeueSemaphore.release();
-                return false;
-            } else {
-                enqueueSemaphore.acquire();
-                messages[tail] = msg;
-                tail = (tail + 1) % size;
-                dequeueSemaphore.release();
-                return true;
-            }
+        if(isFull()) {
+            dequeueSemaphore.release();
+            return false;
+        } else if (isEmpty()){
+            rear = front = 0;
+            messages[0] = msg;
+            enqueueSemaphore.release();
+            return true;
 
-        } catch (InterruptedException e) {}
-        return false;
+        } else {
+
+            rear = rear++ % size;
+            messages[rear] = msg;
+            dequeueSemaphore.release();
+            return true;
+        }
     }
 
     @Override
