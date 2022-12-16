@@ -1,57 +1,48 @@
 package Multithreading.Semaphore;
 
+/**
+ * Class to execute task3.
+ */
 public class Task3 {
 
-    public void run() {
+  /**
+   * Method to execute task3.
+   */
+  public void run() {
 
-        boolean run = true;
-        CircularQueue queue = new CircularQueue(5);
- 
-        Thread sA = new Thread(() -> {
-            try {
-                while(run == true) {
-                    queue.enqueueSemaphore.acquire();
-                    queue.Send('A');
-                } 
-            } catch (InterruptedException e) {}
-            
-        });
+    boolean run = true;
+    CircularQueue queue = new CircularQueue(5);
 
-        Thread sB = new Thread(() -> {
-            try {
-                while(run == true) {
-                    queue.enqueueSemaphore.acquire();
-                    queue.Send('B');
-                }
-            } catch (InterruptedException e) {}
-            
-        });
+    Thread sA = new Thread(() -> {
+      while (run == true) {
+        queue.send('A');
+      }
+    });
 
-        Thread sC = new Thread(() -> {
-            try {
-                while(run == true) {
-                    queue.enqueueSemaphore.acquire();
-                    queue.Send('C');
-                }
-            } catch (InterruptedException e) {}
-            
-        });
+    Thread sB = new Thread(() -> {
+      while (run == true) {
+        queue.send('B');
+      }
+    });
 
-        Thread reciever = new Thread(() -> {
-            try {
-                while(run == true) {
-                    queue.dequeueSemaphore.acquire();
-                    System.out.print(queue.Recv());
-                }
-            } catch (InterruptedException e) {}
-        });
+    Thread sC = new Thread(() -> {
+      while (run == true) {
+        queue.send('C');
+      }
+    });
 
-        sA.start();
-        sB.start();
-        sC.start();
+    Thread reciever = new Thread(() -> {
+      while (run == true) {
+        System.out.print(queue.recv());
+      }
+    });
 
-        reciever.start();
+    sA.start();
+    sB.start();
+    sC.start();
 
-    }
+    reciever.start();
+
+  }
 
 }

@@ -1,0 +1,4 @@
+{
+    "java.checkstyle.version": "10.5.0",
+    "java.checkstyle.configuration": "/google_checks.xml"
+}
